@@ -1,0 +1,8 @@
+node_modules/
+dist/
+release/
+resources/bin/win32/
+resources/bin/darwin/
+resources/bin/linux/
+*.log
+.env
