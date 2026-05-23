@@ -29,10 +29,10 @@ export function getBinaryPath(toolName: string): string {
 // Returns the directory where bundled binaries are stored inside the app package.
 // Used by the setup wizard to extract them on first launch.
 export function getBundledBinDir(): string {
-  try {
+  const isPackaged = app.isPackaged
+  if (isPackaged) {
     return path.join(process.resourcesPath, 'bin')
-  } catch {
-    // Fallback for development
-    return path.join(__dirname, '../../resources/bin', process.platform)
   }
+  // Dev mode — resolve from project root
+  return path.join(__dirname, '../../../resources/bin', process.platform)
 }

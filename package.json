@@ -54,6 +54,7 @@
     }
   },
   "devDependencies": {
+    "@types/extract-zip": "^2.0.0",
     "@types/node": "^22.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
@@ -72,25 +73,31 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.0",
+    "extract-zip": "^2.0.1",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "tailwindcss": "^4.0.0",
     "zustand": "^5.0.0"
-    
   },
   "ts-node": {
     "compilerOptions": {
-    "target": "ES2020",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "lib": ["ES2020"],
-    "outDir": "dist/main",
-    "rootDir": "src",
-    "strict": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "esModuleInterop": true
-  },
-  "include": ["src/main/**/*", "src/preload/**/*", "src/core/**/*"]
-}
+      "target": "ES2020",
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "lib": [
+        "ES2020"
+      ],
+      "outDir": "dist/main",
+      "rootDir": "src",
+      "strict": true,
+      "skipLibCheck": true,
+      "resolveJsonModule": true,
+      "esModuleInterop": true
+    },
+    "include": [
+      "src/main/**/*",
+      "src/preload/**/*",
+      "src/core/**/*"
+    ]
   }
+}

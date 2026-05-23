@@ -1,8 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
 
-// All renderer <-> main communication goes through this bridge.
-// nodeIntegration is false — renderer has zero direct Node access.
-
 contextBridge.exposeInMainWorld('vulnscan', {
   // Binary paths
   getBinaryPath: (toolName: string): Promise<string> =>
@@ -18,26 +15,40 @@ contextBridge.exposeInMainWorld('vulnscan', {
   writeState: (partial: Partial<AppState>): Promise<void> =>
     ipcRenderer.invoke('state:write', partial),
 
-  // Executor — run a tool, stream output back
-  runTool: (
-    toolName: string,
-    args: string[],
-    opts?: RunToolOptions
-  ): Promise<RunResult> =>
+  // Executor
+  runTool: (toolName: string, args: string[], opts?: RunToolOptions): Promise<RunResult> =>
     ipcRenderer.invoke('executor:run', toolName, args, opts),
 
-  // Listen to streaming output lines from a running tool
-  onToolOutput: (
-    callback: (data: ToolOutputEvent) => void
-  ): (() => void) => {
-    const handler = (_: Electron.IpcRendererEvent, data: ToolOutputEvent) =>
-      callback(data)
+  onToolOutput: (callback: (data: ToolOutputEvent) => void): (() => void) => {
+    const handler = (_: Electron.IpcRendererEvent, data: ToolOutputEvent) => callback(data)
     ipcRenderer.on('executor:output', handler)
     return () => ipcRenderer.removeListener('executor:output', handler)
   },
+
+  // Setup wizard
+  extractBinaries: (): Promise<ExtractionResult[]> =>
+    ipcRenderer.invoke('setup:extract-binaries'),
+
+  checkTool: (toolName: string): Promise<ToolCheckResult> =>
+    ipcRenderer.invoke('setup:check-tool', toolName),
+
+  installNpcap: (): Promise<{ ok: boolean; error?: string }> =>
+    ipcRenderer.invoke('setup:install-npcap'),
+
+  updateTemplates: (): Promise<{ ok: boolean; exitCode: number }> =>
+    ipcRenderer.invoke('setup:update-templates'),
+
+  onTemplateOutput: (callback: (line: string) => void): (() => void) => {
+    const handler = (_: Electron.IpcRendererEvent, line: string) => callback(line)
+    ipcRenderer.on('setup:template-output', handler)
+    return () => ipcRenderer.removeListener('setup:template-output', handler)
+  },
+
+  completeSetup: (): Promise<void> =>
+    ipcRenderer.invoke('setup:complete'),
 })
 
-// ── Types shared between preload and renderer ────────────────────────────────
+// ── Shared types ─────────────────────────────────────────────────────────────
 
 export interface AppState {
   setupComplete: boolean
@@ -61,4 +72,16 @@ export interface ToolOutputEvent {
   toolName: string
   line: string
   stream: 'stdout' | 'stderr'
+}
+
+export interface ExtractionResult {
+  tool: string
+  ok: boolean
+  error?: string
+}
+
+export interface ToolCheckResult {
+  name: string
+  version: string | null
+  ok: boolean
 }

@@ -1,34 +1,43 @@
 import React, { useEffect, useState } from 'react'
-
-// Temporary type shim until we have proper window.vulnscan types
-declare global {
-  interface Window {
-    vulnscan?: {
-      readState: () => Promise<{ setupComplete: boolean; toolVersions: Record<string, string> }>
-      getExtractionDir: () => Promise<string>
-    }
-  }
-}
+import SetupWizard from './components/SetupWizard'
 
 export default function App() {
   const [setupComplete, setSetupComplete] = useState<boolean | null>(null)
-  const [extractionDir, setExtractionDir] = useState<string>('')
 
   useEffect(() => {
+    // Add spinner keyframe
+    const style = document.createElement('style')
+    style.textContent = `@keyframes spin { to { transform: rotate(360deg); } }`
+    document.head.appendChild(style)
+
     if (window.vulnscan) {
       window.vulnscan.readState().then(state => {
         setSetupComplete(state.setupComplete)
       })
-      window.vulnscan.getExtractionDir().then(dir => {
-        setExtractionDir(dir)
-      })
     } else {
-      // Running in browser dev mode without Electron — show placeholder
       setSetupComplete(false)
-      setExtractionDir('(not in Electron context)')
     }
   }, [])
 
+  // Loading state
+  if (setupComplete === null) {
+    return (
+      <div style={{
+        height: '100vh', display: 'flex',
+        alignItems: 'center', justifyContent: 'center',
+        color: 'var(--color-text-muted)', fontSize: 12,
+      }}>
+        loading...
+      </div>
+    )
+  }
+
+  // First launch — show wizard
+  if (!setupComplete) {
+    return <SetupWizard onComplete={() => setSetupComplete(true)} />
+  }
+
+  // Main app
   return (
     <div style={{ display: 'flex', height: '100vh', flexDirection: 'column' }}>
 
@@ -44,17 +53,10 @@ export default function App() {
         WebkitAppRegion: 'drag' as React.CSSProperties['WebkitAppRegion'],
         flexShrink: 0,
       }}>
-        <span style={{
-          color: 'var(--color-accent)',
-          fontWeight: 700,
-          fontSize: 13,
-          letterSpacing: '0.05em',
-        }}>
+        <span style={{ color: 'var(--color-accent)', fontWeight: 700, fontSize: 13, letterSpacing: '0.05em' }}>
           VULNSCAN
         </span>
-        <span style={{ color: 'var(--color-text-muted)', fontSize: 11 }}>
-          v0.1.0-dev
-        </span>
+        <span style={{ color: 'var(--color-text-muted)', fontSize: 11 }}>v0.1.0-dev</span>
       </div>
 
       {/* Main layout */}
@@ -73,82 +75,48 @@ export default function App() {
           <div style={{ padding: '0 12px 8px', color: 'var(--color-text-muted)', fontSize: 10, letterSpacing: '0.1em' }}>
             SESSIONS
           </div>
-          <div style={{
-            padding: '8px 12px',
-            color: 'var(--color-text-muted)',
-            fontSize: 12,
-            fontStyle: 'italic',
-          }}>
+          <div style={{ padding: '8px 12px', color: 'var(--color-text-muted)', fontSize: 12, fontStyle: 'italic' }}>
             No sessions yet
           </div>
         </div>
 
-        {/* Content area */}
+        {/* Content */}
         <div style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 16,
+          flex: 1, display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
           color: 'var(--color-text-muted)',
         }}>
-
-          {/* Boot status card */}
           <div style={{
             background: 'var(--color-surface)',
             border: '1px solid var(--color-border)',
             borderRadius: 8,
             padding: '24px 32px',
             minWidth: 400,
+            textAlign: 'center',
           }}>
-            <div style={{
-              color: 'var(--color-accent)',
-              fontSize: 11,
-              letterSpacing: '0.1em',
-              marginBottom: 16,
-            }}>
-              SPRINT 1 — FOUNDATION ✓
+            <div style={{ color: 'var(--color-accent)', fontSize: 11, letterSpacing: '0.1em', marginBottom: 12 }}>
+              READY
             </div>
-
-            <StatusRow label="IPC bridge" value={window.vulnscan ? '✓ active' : '⚠ no Electron context'} ok={!!window.vulnscan} />
-            <StatusRow label="setup complete" value={setupComplete === null ? '...' : String(setupComplete)} ok={!!setupComplete} />
-            <StatusRow label="extraction dir" value={extractionDir || '...'} ok={!!extractionDir} />
-
-            <div style={{
+            <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+              Create a new session to start scanning
+            </div>
+            <button style={{
               marginTop: 20,
-              paddingTop: 16,
-              borderTop: '1px solid var(--color-border)',
-              fontSize: 11,
-              color: 'var(--color-text-muted)',
+              padding: '8px 20px',
+              background: 'var(--color-accent)',
+              color: '#000',
+              border: 'none',
+              borderRadius: 6,
+              fontSize: 12,
+              fontWeight: 600,
+              fontFamily: 'inherit',
+              cursor: 'pointer',
             }}>
-              Next: Setup wizard → binary extraction → session manager
-            </div>
+              + New Session
+            </button>
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-function StatusRow({ label, value, ok }: { label: string; value: string; ok: boolean }) {
-  return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '6px 0',
-      borderBottom: '1px solid var(--color-border)',
-      gap: 24,
-    }}>
-      <span style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>{label}</span>
-      <span style={{
-        color: ok ? 'var(--color-accent)' : 'var(--color-medium)',
-        fontSize: 12,
-        fontFamily: 'monospace',
-      }}>
-        {value}
-      </span>
     </div>
   )
 }
