@@ -2,29 +2,28 @@
 // Adding support for a new tool = add one entry here + drop the binary
 // in resources/bin/{platform}/. No other code changes needed.
 
+
 export type Platform = 'win32' | 'darwin' | 'linux'
 
 export interface BinaryEntry {
   win32: string
   darwin: string
   linux: string
-  // GitHub release URL pattern for the bundle script
-  releaseUrl?: {
-    win32?: string
-    darwin?: string
-    linux?: string
-  }
+  win32InstallPath?: string
+  installer?: Partial<Record<Platform, string>>
+  releaseUrl?: Partial<Record<Platform, string>>
 }
 
 export const BINARY_REGISTRY: Record<string, BinaryEntry> = {
   nmap: {
-    win32: 'nmap.exe',
-    darwin: 'nmap',
-    linux: 'nmap',
-    releaseUrl: {
-      win32: 'https://nmap.org/dist/nmap-7.97-setup.exe',
-    },
+  win32: 'nmap.exe',
+  darwin: 'nmap',
+  linux: 'nmap',
+  win32InstallPath: 'C:\\Program Files (x86)\\Nmap\\nmap.exe',
+  installer: {
+    win32: 'nmap-setup.exe',
   },
+},
   nuclei: {
     win32: 'nuclei.exe',
     darwin: 'nuclei',
@@ -126,3 +125,4 @@ export function getBinaryFilename(toolName: string, platform: Platform): string 
 export function getAllToolNames(): string[] {
   return Object.keys(BINARY_REGISTRY)
 }
+

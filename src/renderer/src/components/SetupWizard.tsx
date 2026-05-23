@@ -4,12 +4,12 @@ interface ToolStatus {
   name: string
   label: string
   version: string | null
-  status: 'pending' | 'checking' | 'ok' | 'failed' | 'missing'
+  status: 'pending' | 'checking' | 'ok' | 'failed' | 'missing' | 'installing'
   required: boolean
 }
 
 const TOOLS: { name: string; label: string; required: boolean }[] = [
-  { name: 'nmap',      label: 'nmap',      required: true  },
+  { name: 'nmap',      label: 'nmap',      required: false },
   { name: 'nuclei',    label: 'nuclei',    required: true  },
   { name: 'httpx',     label: 'httpx',     required: true  },
   { name: 'naabu',     label: 'naabu',     required: false },
@@ -263,20 +263,22 @@ export default function SetupWizard({ onComplete }: Props) {
 
 function ToolRow({ tool }: { tool: ToolStatus }) {
   const statusColor = {
-    pending:  'var(--color-text-muted)',
-    checking: 'var(--color-medium)',
-    ok:       'var(--color-accent)',
-    failed:   'var(--color-critical)',
-    missing:  'var(--color-text-muted)',
+    pending:    'var(--color-text-muted)',
+  checking:   'var(--color-medium)',
+  installing: 'var(--color-medium)',
+  ok:         'var(--color-accent)',
+  failed:     'var(--color-critical)',
+  missing:    'var(--color-text-muted)',
   }[tool.status]
 
   const statusIcon = {
-    pending:  '○',
-    checking: '◌',
-    ok:       '✓',
-    failed:   '✗',
-    missing:  '—',
-  }[tool.status]
+  pending:    '○',
+  checking:   '◌',
+  installing: '◌',
+  ok:         '✓',
+  failed:     '✗',
+  missing:    '—',
+}[tool.status]
 
   return (
     <div style={{
@@ -296,8 +298,10 @@ function ToolRow({ tool }: { tool: ToolStatus }) {
         </span>
       )}
       <span style={{ color: statusColor, fontSize: 11, fontFamily: 'monospace', minWidth: 120, textAlign: 'right' }}>
-        {tool.status === 'checking' ? 'checking...' : tool.version ?? (tool.status === 'failed' ? 'not found' : '')}
-      </span>
+  {tool.status === 'checking' ? 'checking...' 
+   : tool.status === 'installing' ? 'follow the installer...' 
+   : tool.version ?? (tool.status === 'failed' ? 'not found' : '')}
+</span>
     </div>
   )
 }

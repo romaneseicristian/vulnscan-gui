@@ -77,12 +77,10 @@ ipcMain.handle('setup:extract-binaries', async () => {
 })
 
 ipcMain.handle('setup:check-tool', async (_event, toolName: string) => {
+  const path = getBinaryPath(toolName)
+  console.log(`[check-tool] ${toolName} → ${path}`)
   const version = await getVersion(toolName)
-  return {
-    name: toolName,
-    version,
-    ok: version !== null,
-  }
+  return { name: toolName, version, ok: version !== null }
 })
 
 ipcMain.handle('setup:install-npcap', async () => {

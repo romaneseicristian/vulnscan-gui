@@ -1,7 +1,7 @@
 import path from 'path'
 import os from 'os'
 import { app } from 'electron'
-import { getBinaryFilename, Platform } from './binary-registry'
+import { BINARY_REGISTRY, getBinaryFilename, Platform } from './binary-registry'
 
 // Returns the directory where binaries are extracted to at runtime.
 // Never touches system PATH — all calls use this absolute path.
@@ -21,6 +21,8 @@ export function getExtractionDir(): string {
 
 // Returns the full absolute path to a specific tool binary.
 export function getBinaryPath(toolName: string): string {
+  const installedPath = getInstalledBinaryPath(toolName)
+  if (installedPath) return installedPath
   const platform = process.platform as Platform
   const filename = getBinaryFilename(toolName, platform)
   return path.join(getExtractionDir(), filename)
@@ -35,4 +37,13 @@ export function getBundledBinDir(): string {
   }
   // Dev mode — resolve from project root
   return path.join(__dirname, '../../../resources/bin', process.platform)
+}
+
+export function getInstalledBinaryPath(toolName: string): string | null {
+  const entry = BINARY_REGISTRY[toolName]
+  if (!entry) return null
+  if (process.platform === 'win32' && entry.win32InstallPath) {
+    return entry.win32InstallPath
+  }
+  return null
 }

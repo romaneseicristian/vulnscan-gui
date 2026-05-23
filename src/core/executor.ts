@@ -108,11 +108,15 @@ export function run(
 
 // Convenience: run a tool just for its version string.
 // Used by setup wizard to verify each binary.
+function stripAnsi(str: string): string {
+  return str.replace(/\x1B\[[0-9;]*[mGKHF]/g, '').trim()
+}
+
 export async function getVersion(toolName: string): Promise<string | null> {
   try {
     const { promise } = run(toolName, ['--version'], { timeout: 5000 })
     const result = await promise
-    const output = (result.stdout + result.stderr).trim()
+    const output = stripAnsi(result.stdout + result.stderr)
     const firstLine = output.split('\n')[0]
     return firstLine || null
   } catch {
